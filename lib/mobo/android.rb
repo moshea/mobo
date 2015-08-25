@@ -60,13 +60,12 @@ module Mobo
           port += 2
         end
         Emulator.last_port = port
-        return port
+        @device["port"] = port
       end
 
       def create_sdcard
-        sdcard_name = "#{@device["name"]}_sdcard.img"
-        Mobo.cmd("mksdcard -l e #{@device["sdcard_size"]} #{sdcard_name}")
-        return sdcard_name
+        @device["sdcard"] = "#{@device["name"]}_sdcard.img"
+        Mobo.cmd("mksdcard -l e #{@device["sdcard_size"]} #{@device["sdcard"]}")
       end
 
       def destroy_sdcard
@@ -74,7 +73,7 @@ module Mobo
       end
 
       def create_cache
-        @device["name"] + "_cache.img"
+        @device["cache"] = @device["name"] + "_cache.img"
       end
 
       def destroy_cache
@@ -82,11 +81,9 @@ module Mobo
       end
 
       def start
-        port = find_open_port
-        @device["port"] = port
-        @device["id"] = "emulator-#{port}"
-        @device["sdcard"] = create_sdcard
-        @device["cache"] = create_cache
+        find_open_port
+        create_sdcard
+        create_cache
 
         cmd ="emulator @#{@device["name"]} \
           -port #{@device["port"]} \
@@ -97,6 +94,7 @@ module Mobo
         Process.detach(pid)
 
         @device["pid"] = pid
+        @device["id"] = "emulator-#{@device["port"]}"
         return @device
       end
 

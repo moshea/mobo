@@ -1,5 +1,9 @@
 module Android
   PORT_START = 5600
+  BOOT_SLEEP = 5
+  BOOT_WAIT_ATTEMPTS = 30
+  UNLOCK_KEY_EVENT = 82
+  BACK_KEY_EVENT = 4
 
   class << self
     def exists?
@@ -61,7 +65,9 @@ module Android
       end
 
       def start(device)
-        MOBO.devices[device["name"]]["port"] = find_open_port
+        port = find_open_port
+        MOBO.devices[device["name"]]["port"] = port
+        MOBO.devices[device["name"]]["id"] = "emulator-#{port}"
         MOBO.devices[device["name"]]["sdcard"] = create_sdcard(device)
         MOBO.devices[device["name"]]["cache"] = create_cache(device)
         cmd ="emulator @#{device["name"]} \
@@ -72,6 +78,32 @@ module Android
         Process.detach(pid)
 
         MOBO.devices[device["name"]]["pid"] = pid
+      end
+
+      def unlock(device)
+        device = MOBO.devices[device["name"]]
+        boot_successful = false
+        Process.fork do
+          BOOT_WAIT_ATTEMPTS.times do |attempt|
+            bootanim = MOBO.cmd_out("adb -s #{device["id"]} shell 'getprop init.svc.bootanim'")
+            if bootanim.match(/stopped/)
+              boot_successful = true
+              MOBO.log.debug("#{device["id"]} has booted")
+              break
+            else
+              MOBO.log.debug("waiting for #{device["id"]} to boot...")
+              sleep(BOOT_SLEEP)
+            end
+          end
+          if boot_successful
+            # unlock the emulator, so it can be used for UI testing
+            # then, pressing back because sometimes a menu appears
+            [UNLOCK_KEY_EVENT, BACK_KEY_EVENT].each do |key|
+              sleep(BOOT_SLEEP)
+              MOBO.cmd("adb -s #{device["id"]} shell input keyevent #{key}")
+            end
+          end
+        end
       end
     end
   end

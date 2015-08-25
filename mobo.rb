@@ -43,18 +43,6 @@ module MOBO
       defaults.merge(device)
     end
 
-    def create_device(device)
-      SystemCheck.target_exists(device["target"])
-      SystemCheck.abi_exists(device["target"], device["abi"])
-
-      MOBO.log.debug("booting device '#{device["name"]}'")
-      Android::Avd.create(device)
-    end
-
-    def boot_device(device)
-      Android::Emulator.start(device)
-    end
-
     def process_yaml
       # retrive settings for one of each device
       MOBO.data["devices"].each do |device|
@@ -64,8 +52,9 @@ module MOBO
 
       # build and boot devices
       MOBO.devices.each_pair do |name, device|
-        create_device(device)
-        boot_device(device)
+        Android::Avd.create(device)
+        Android::Emulator.start(device)
+        Android::Emulator.unlock(device)
       end
     end
   end

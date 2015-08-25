@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require_relative '../mobo'
+require_relative '../lib/mobo'
 
 MOBO_DEVICES_FILE = Dir.pwd + '/.mobo-devices.yaml'
 

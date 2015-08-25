@@ -2,3 +2,4 @@
 *.yaml
 *.img
 *.img.lock
+*.gem

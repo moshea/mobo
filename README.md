@@ -1,6 +1,8 @@
 Usage:
   mobo up      - boot all devices defined in the devices.yaml file in the current directory
+
   mobo status  - show status of all current devices
+
   mobo destroy - kill all running devices
 
 

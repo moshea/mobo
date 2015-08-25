@@ -13,12 +13,12 @@ module MOBO
     end
 
     def cmd(command)
-      log.info(command)
+      log.debug(command)
       system(command)
     end
 
     def cmd_out(command)
-      log.info(command)
+      log.debug(command)
       `#{command}`
     end
 
@@ -43,7 +43,7 @@ module MOBO
       defaults.merge(device)
     end
 
-    def process_yaml
+    def up
       # retrive settings for one of each device
       MOBO.data["devices"].each do |device|
         device = device_config(device)
@@ -53,17 +53,34 @@ module MOBO
       # build and boot devices
       MOBO.devices.each_pair do |name, device|
         Android::Avd.create(device)
-        Android::Emulator.start(device)
-        Android::Emulator.unlock(device)
+        emulator = Android::Emulator.new(device)
+        emulator.start
+        emulator.unlock_when_booted
+      end
+      File.open(MOBO_DEVICES_FILE, "w") do |file|
+        file.write MOBO.devices.to_yaml
       end
     end
+
+    def status
+      MOBO.data.each_pair do |name, device|
+        Android::Emulator.new(device).status
+      end
+    end
+
+    def destroy
+      MOBO.data.each_pair do |name, device|
+        Android::Emulator.new(device).destroy
+      end
+    end
+
   end
 
   module SystemCheck
     class << self
       def bash_check(cmd, msg)
         if cmd
-          MOBO.log.debug(msg + ": YES")
+          MOBO.log.info(msg + ": YES")
         else
           raise failure_msg + ": NO"
           exit 1

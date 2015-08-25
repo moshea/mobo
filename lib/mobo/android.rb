@@ -43,66 +43,102 @@ module Android
     end
   end
 
-  module Emulator
+  class Emulator
+
     class << self
+      attr_accessor :last_port
+    end
 
-      def find_open_port
-        port = PORT_START
-        until not MOBO.cmd("netstat -an | grep 127.0.0.1.#{port}")
-          port += 2
+    def initialize(device)
+      @device = device
+    end
+
+    def find_open_port
+      port = (Emulator.last_port || PORT_START) + 2
+      until not MOBO.cmd("netstat -an | grep 127.0.0.1.#{port}")
+        port += 2
+      end
+      Emulator.last_port = port
+      return port
+    end
+
+    def create_sdcard
+      sdcard_name = "#{@device["name"]}_sdcard.img"
+      MOBO.cmd("mksdcard -l e #{@device["sdcard_size"]} #{sdcard_name}")
+      return sdcard_name
+    end
+
+    def create_cache
+      @device["name"] + "_cache.img"
+    end
+
+    def start
+      port = find_open_port
+      @device["port"] = port
+      @device["id"] = "emulator-#{port}"
+      @device["sdcard"] = create_sdcard
+      @device["cache"] = create_cache
+
+      cmd ="emulator @#{@device["name"]} \
+        -port #{@device["port"]} \
+        -sdcard #{@device["sdcard"]} \
+        -cache #{@device["cache"]}"
+      MOBO.log.debug(cmd)
+      pid = Process.spawn(cmd)
+      Process.detach(pid)
+
+      @device["pid"] = pid
+      return @device
+    end
+
+    def unlock_when_booted
+      Process.fork do
+        BOOT_WAIT_ATTEMPTS.times do |attempt|
+          if booted?
+            MOBO.log.info("#{@device["id"]} has booted")
+            break
+          else
+            MOBO.log.debug("waiting for #{@device["id"]} to boot...")
+            sleep(BOOT_SLEEP)
+          end
         end
-        return port
+
+        if booted?
+          unlock
+        end
       end
+    end
 
-      def create_sdcard(device)
-        sdcard_name = "#{device["name"]}_sdcard.img"
-        MOBO.cmd("mksdcard -l e #{device["sdcard_size"]} #{sdcard_name}")
-        return sdcard_name
+    def booted?
+      bootanim = MOBO.cmd_out("adb -s #{@device["id"]} shell 'getprop init.svc.bootanim'")
+      if bootanim.match(/stopped/)
+        return true
+      else
+        return false
       end
+    end
 
-      def create_cache(device)
-        device["name"] + "_cache.img"
+    def unlock
+      # unlock the emulator, so it can be used for UI testing
+      # then, pressing back because sometimes a menu appears
+      [UNLOCK_KEY_EVENT, BACK_KEY_EVENT].each do |key|
+        sleep(BOOT_SLEEP)
+        MOBO.cmd("adb -d #{@device["id"]} shell input keyevent #{key}")
       end
+    end
 
-      def start(device)
-        port = find_open_port
-        MOBO.devices[device["name"]]["port"] = port
-        MOBO.devices[device["name"]]["id"] = "emulator-#{port}"
-        MOBO.devices[device["name"]]["sdcard"] = create_sdcard(device)
-        MOBO.devices[device["name"]]["cache"] = create_cache(device)
-        cmd ="emulator @#{device["name"]} \
-          -port #{MOBO.devices[device["name"]]["port"]} \
-          -sdcard #{MOBO.devices[device["name"]]["sdcard"]} \
-          -cache #{MOBO.devices[device["name"]]["cache"]}"
-        pid = Process.spawn(cmd)
-        Process.detach(pid)
+    def status
+      MOBO.log.info("#{@device["name"]} (#{@device["id"]}) is running: #{booted?}")
+    end
 
-        MOBO.devices[device["name"]]["pid"] = pid
-      end
-
-      def unlock(device)
-        device = MOBO.devices[device["name"]]
-        boot_successful = false
-        Process.fork do
-          BOOT_WAIT_ATTEMPTS.times do |attempt|
-            bootanim = MOBO.cmd_out("adb -s #{device["id"]} shell 'getprop init.svc.bootanim'")
-            if bootanim.match(/stopped/)
-              boot_successful = true
-              MOBO.log.debug("#{device["id"]} has booted")
-              break
-            else
-              MOBO.log.debug("waiting for #{device["id"]} to boot...")
-              sleep(BOOT_SLEEP)
-            end
-          end
-          if boot_successful
-            # unlock the emulator, so it can be used for UI testing
-            # then, pressing back because sometimes a menu appears
-            [UNLOCK_KEY_EVENT, BACK_KEY_EVENT].each do |key|
-              sleep(BOOT_SLEEP)
-              MOBO.cmd("adb -s #{device["id"]} shell input keyevent #{key}")
-            end
-          end
+    def destroy
+      (0..10).each do 
+        if booted?
+          MOBO.cmd("adb -d #{@device["id"]} emu kill")
+          sleep 1
+        else
+          MOBO.log.info("#{@device["name"]} (#{@device["id"]}) is shutdown")
+          break
         end
       end
     end

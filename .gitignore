@@ -1,3 +1,4 @@
-mobo.yaml
+.mobo-devices.yaml
+*.yaml
 *.img
 *.img.lock

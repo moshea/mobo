@@ -69,8 +69,16 @@ module Mobo
         return sdcard_name
       end
 
+      def destroy_sdcard
+        Mobo.cmd("rm -f #{@device["sdcard"]}")
+      end
+
       def create_cache
         @device["name"] + "_cache.img"
+      end
+
+      def destroy_cache
+        Mobo.cmd("rm -f #{@device["cache"]}")
       end
 
       def start
@@ -139,6 +147,8 @@ module Mobo
             sleep 1
           else
             Mobo.log.info("#{@device["name"]} (#{@device["id"]}) is shutdown")
+            destroy_cache
+            destroy_sdcard
             break
           end
         end

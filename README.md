@@ -20,3 +20,9 @@ devices:
     height: 800
     width: 600
 ```
+
+Building from source:
+```bash
+gem build mobo.gemspec
+gem install -l mobo-[version].gem
+```

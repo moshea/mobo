@@ -1,9 +1,4 @@
 module Android
-  PORT_START = 5600
-  BOOT_SLEEP = 5
-  BOOT_WAIT_ATTEMPTS = 30
-  UNLOCK_KEY_EVENT = 82
-  BACK_KEY_EVENT = 4
 
   class << self
     def exists?
@@ -44,6 +39,11 @@ module Android
   end
 
   class Emulator
+    PORT_START = 5600
+    BOOT_SLEEP = 5
+    BOOT_WAIT_ATTEMPTS = 30
+    UNLOCK_KEY_EVENT = 82
+    BACK_KEY_EVENT = 4
 
     class << self
       attr_accessor :last_port

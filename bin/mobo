@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+require_relative '../mobo'
+
+MOBO.data = YAML::load_file(Dir.pwd + '/' + ARGV[0])
+MOBO.process_yaml

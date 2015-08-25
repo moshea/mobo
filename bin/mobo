@@ -5,12 +5,12 @@ MOBO_DEVICES_FILE = Dir.pwd + '/.mobo-devices.yaml'
 
 case ARGV[0]
 when "up"
-  MOBO.data = YAML::load_file(Dir.pwd + '/devices.yaml')
-  MOBO.up
+  Mobo.data = YAML::load_file(Dir.pwd + '/devices.yaml')
+  Mobo.up
 when "status"
-  MOBO.data = YAML::load_file(MOBO_DEVICES_FILE)
-  MOBO.status
+  Mobo.data = YAML::load_file(MOBO_DEVICES_FILE)
+  Mobo.status
 when "destroy"
-  MOBO.data = YAML::load_file(MOBO_DEVICES_FILE)
-  MOBO.destroy
+  Mobo.data = YAML::load_file(MOBO_DEVICES_FILE)
+  Mobo.destroy
 end

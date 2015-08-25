@@ -68,7 +68,8 @@ module Android
           -port #{MOBO.devices[device["name"]]["port"]} \
           -sdcard #{MOBO.devices[device["name"]]["sdcard"]} \
           -cache #{MOBO.devices[device["name"]]["cache"]}"
-        pid = Mobo.start_process(cmd)
+        pid = Process.spawn(cmd)
+        Process.detach(pid)
 
         MOBO.devices[device["name"]]["pid"] = pid
       end

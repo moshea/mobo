@@ -32,17 +32,14 @@ module MOBO
       @devices = @devices.nil? ? {} : @devices
     end
 
-    def device_config(name, lab=nil)
+    def device_config(device)
       defaults = {
-        "lab"         => lab,
         "name"        => "default",
         "target"      => "android-22",
         "abi"         => "default/x86_64",
         "height"      => "1200",
         "width"       => "720",
         "sdcard_size" => "20M" }
-      device = MOBO.data["devices"].select{ |d| d["name"] == name }.first
-      device["name"] = lab ? "#{lab["name"]}_#{device["name"]}" : device["name"]
       defaults.merge(device)
     end
 
@@ -59,28 +56,16 @@ module MOBO
     end
 
     def process_yaml
-      if MOBO.data["lab"].empty?
-        # retrive settings for one of each device if no labs are defined
-        MOBO.data["devices"].each do |device|
-          device = device_config(device["name"])
-          MOBO.devices[device["name"]] = device
-        end
-      else
-        # iterate and build labs based on the devices specified in lab config
-        # iterate the devices listed
-        # match the name of the device with the devices listed
-        MOBO.data["lab"].each do |lab|
-          lab["devices"].each do |lab_device|
-            device = device_config(lab_device["name"], lab)
-            MOBO.devices[device["name"]] = device
-          end
-        end
+      # retrive settings for one of each device
+      MOBO.data["devices"].each do |device|
+        device = device_config(device)
+        MOBO.devices[device["name"]] = device
+      end
 
-        # build and boot devices
-        MOBO.devices.each_pair do |name, device|
-          create_device(device)
-          boot_device(device)
-        end
+      # build and boot devices
+      MOBO.devices.each_pair do |name, device|
+        create_device(device)
+        boot_device(device)
       end
     end
   end

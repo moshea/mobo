@@ -1,16 +1,14 @@
 #!/usr/bin/env ruby
 require_relative '../lib/mobo'
 
-MOBO_DEVICES_FILE = Dir.pwd + '/.mobo-devices.yaml'
+MOBO_DEVICES_FILE = Dir.pwd + '/devices.yaml'
+MOBO_DEVICES_CACHE_FILE = Dir.pwd + '/.mobo-devices.yaml'
 
 case ARGV[0]
 when "up"
-  Mobo.data = YAML::load_file(Dir.pwd + '/devices.yaml')
-  Mobo.up
+  Mobo.up(MOBO_DEVICES_FILE)
 when "status"
-  Mobo.data = YAML::load_file(MOBO_DEVICES_FILE)
-  Mobo.status
+  Mobo.status(MOBO_DEVICES_CACHE_FILE)
 when "destroy"
-  Mobo.data = YAML::load_file(MOBO_DEVICES_FILE)
-  Mobo.destroy
+  Mobo.destroy(MOBO_DEVICES_CACHE_FILE)
 end

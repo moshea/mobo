@@ -30,11 +30,14 @@ module Mobo
     module Avd
       class << self
         def create(device)
+          SystemCheck.target_exists(device["target"])
+
           Mobo.cmd("echo no | android create avd \
             --name #{device["name"]} \
             --target #{device["target"]} \
             --abi #{device["abi"]} \
-            --force > /dev/null 2>&1")
+            --force")
+          raise "Error creating AVD" unless $?.success?
         end
       end
     end

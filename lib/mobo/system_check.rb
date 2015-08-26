@@ -5,7 +5,7 @@ module Mobo
         if cmd
           Mobo.log.info(msg + ": YES")
         else
-          raise failure_msg + ": NO"
+          raise msg + ": NO"
           exit 1
         end
       end
@@ -27,7 +27,11 @@ module Mobo
 
       def abi_exists(target, abi)
         Android::Targets.has_abi?(target, abi)
-      end 
+      end
+
+      def device_file_exists?(filename)
+        File.exists?(filename)
+      end
     end
   end
 end

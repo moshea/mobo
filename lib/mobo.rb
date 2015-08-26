@@ -44,7 +44,19 @@ module Mobo
       defaults.merge(device)
     end
 
-    def up
+    def load_data(filename)
+      raise "Cannot file #{filename}" unless SystemCheck.device_file_exists?(filename)
+      Mobo.data = YAML::load_file(filename)
+    end
+
+    def system_checks
+      SystemCheck.android_home_set
+      SystemCheck.android_cmd_exists
+    end
+
+    def up(filename)
+      system_checks
+      load_data(filename)
       # retrive settings for one of each device
       Mobo.data["devices"].each do |device|
         device = device_config(device)
@@ -63,13 +75,15 @@ module Mobo
       end
     end
 
-    def status
+    def status(filename)
+      load_data(filename)
       Mobo.data.each_pair do |name, device|
         Mobo::Android::Emulator.new(device).status
       end
     end
 
-    def destroy
+    def destroy(filename)
+      load_data(filename)
       Mobo.data.each_pair do |name, device|
         Mobo::Android::Emulator.new(device).destroy
       end

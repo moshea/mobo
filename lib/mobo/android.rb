@@ -5,6 +5,14 @@ module Mobo
       def exists?
         Mobo.cmd("which android")
       end
+
+      def package_exists?(package)
+        Mobo.cmd("android list sdk --extended --no-ui --all | grep '\"#{package}\"'")
+      end
+
+      def install_package(package)
+        Mobo.cmd("echo y | android update sdk --no-ui --all --filter #{package}")
+      end
     end
 
     module Targets
@@ -31,6 +39,7 @@ module Mobo
       class << self
         def create(device)
           SystemCheck.target_exists(device["target"])
+          SystemCheck.abi_exists?(device["target"], device["abi"])
 
           Mobo.cmd("echo no | android create avd \
             --name #{device["name"]} \

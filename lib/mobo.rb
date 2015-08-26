@@ -4,6 +4,7 @@ require 'pp'
 require 'logger'
 require_relative 'mobo/android'
 require_relative 'mobo/system_check'
+require_relative 'mobo/system_setup'
 
 module Mobo
   class << self
@@ -25,9 +26,17 @@ module Mobo
 
     def start_process(cmd)
       pid = Process.spawn(cmd)
-        Process.detach(pid)
-        pid
+      Process.detach(pid)
+      pid
+    end
+
+    def ask_user(msg, &block)
+      puts msg
+      ans = STDIN.gets.chomp
+      if ans.match(/yes|y|Y/)
+        yield
       end
+    end
 
     def devices
       @devices = @devices.nil? ? {} : @devices
@@ -37,7 +46,7 @@ module Mobo
       defaults = {
         "name"        => "default",
         "target"      => "android-22",
-        "abi"         => "default/x86_64",
+        "abi"         => "x86_64",
         "height"      => "1200",
         "width"       => "720",
         "sdcard_size" => "20M" }

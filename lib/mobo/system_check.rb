@@ -2,12 +2,8 @@ module Mobo
   module SystemCheck
     class << self
       def bash_check(cmd, msg)
-        if cmd
-          Mobo.log.info(msg + ": YES")
-        else
-          raise msg + ": NO"
-          exit 1
-        end
+        Mobo.log.info("#{msg} : #{cmd}")
+        cmd
       end
 
       def android_home_set
@@ -21,12 +17,19 @@ module Mobo
       end
 
       def target_exists(target)
-        bash_check(Android::Targets.exists?(target), 
-          "target #{target} exists")
+        unless Android::Targets.exists?(target)
+          Mobo.ask_user("Target #{target} is not installed. Would you like to install it? [Y/n]"){
+            SystemSetup.install_target(target)
+          }
+        end
       end
 
-      def abi_exists(target, abi)
-        Android::Targets.has_abi?(target, abi)
+      def abi_exists?(target, abi)
+        unless Android::Targets.has_abi?(target, abi)
+          Mobo.ask_user("ABI #{abi} is not installed. Would you like to install it? [Y/n]"){
+            SystemSetup.install_abi(target, abi)
+          }
+        end
       end
 
       def device_file_exists?(filename)

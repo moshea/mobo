@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = 'Mobo - android emulator abstraction'
   s.description = 'Abstract android emaulators with a simple yaml file'
   s.authors     = ["Mark O'Shea"]
+  s.licenses    = ['MIT']
   s.email       = 'mark@osheatech.com'
   s.executables = ['mobo']
   s.files       = ruby_files + bin_files

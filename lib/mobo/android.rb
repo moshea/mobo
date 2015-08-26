@@ -6,6 +6,17 @@ module Mobo
         Mobo.cmd("which android")
       end
 
+      def install
+        Mobo.cmd("curl -O http://dl.google.com/android/android-sdk_r24.3.4-linux.tgz")
+        Mobo.cmd("sudo tar -xf android-sdk_r24.3.4-linux.tgz -C /usr/local/")
+      end
+
+      def set_android_home
+        Mobo.cmd("echo \"export ANDROID_HOME=/usr/local/android-sdk-linux\" >> ~/.bash_profile")
+        Mobo.cmd("echo \"export PATH=$PATH:$ANDROID_HOME/tools\" >> ~/.bash_profile")
+        Mobo.cmd("source ~/.bash_profile")
+      end
+
       def package_exists?(package)
         Mobo.cmd("android list sdk --extended --no-ui --all | grep '\"#{package}\"'")
       end

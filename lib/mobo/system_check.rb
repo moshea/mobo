@@ -8,32 +8,26 @@ module Mobo
       end
 
       def android_home_set
-        bash_check(!ENV['ANDROID_HOME'].nil?,
-          "ANDROID_HOME is set",
-          "ANDROID_HOME env varibale is not set")
-        raise
+        unless ENV['ANDROID_HOME']
+          SystemSetup.install_android
+        end
       end
 
       def android_cmd_exists
-        unless bash_check(Android.exists?,
-            "android set in PATH",
-            "android command is not available")
+        unless Android.exists?
+          Android.set_android_home
         end
       end
 
       def target_exists(target)
         unless Android::Targets.exists?(target)
-          Mobo.ask_user("Target #{target} is not installed. Would you like to install it? [Y/n]"){
-            SystemSetup.install_target(target)
-          }
+          SystemSetup.install_target(target)
         end
       end
 
       def abi_exists?(target, abi)
         unless Android::Targets.has_abi?(target, abi)
-          Mobo.ask_user("ABI #{abi} is not installed. Would you like to install it? [Y/n]"){
-            SystemSetup.install_abi(target, abi)
-          }
+          SystemSetup.install_abi(target, abi)
         end
       end
 

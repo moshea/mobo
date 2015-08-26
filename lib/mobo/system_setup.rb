@@ -3,7 +3,8 @@ module Mobo
     class << self
 
       def install_android
-        
+        Android.install
+        Android.set_android_home
       end
 
       def install_target(target)

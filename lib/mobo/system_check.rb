@@ -1,19 +1,24 @@
 module Mobo
   module SystemCheck
     class << self
-      def bash_check(cmd, msg)
-        Mobo.log.info("#{msg} : #{cmd}")
-        cmd
+      def bash_check(cmd, msg, error)
+        system(cmd)
+        Mobo.log.info("#{msg} : #{$?}")
+        raise error unless $?.success?
       end
 
       def android_home_set
         bash_check(!ENV['ANDROID_HOME'].nil?,
-          "ANDROID_HOME is set")
+          "ANDROID_HOME is set",
+          "ANDROID_HOME env varibale is not set")
+        raise
       end
 
       def android_cmd_exists
-        bash_check(Android.exists?, 
-          "android set in PATH")
+        unless bash_check(Android.exists?,
+            "android set in PATH",
+            "android command is not available")
+        end
       end
 
       def target_exists(target)

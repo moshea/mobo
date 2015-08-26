@@ -2,7 +2,9 @@ module Mobo
   module SystemSetup
     class << self
 
-
+      def install_android
+        
+      end
 
       def install_target(target)
         Android.install_package(target) if Android.package_exists?(target)

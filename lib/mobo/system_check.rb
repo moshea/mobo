@@ -7,16 +7,8 @@ module Mobo
         raise error unless $?.success?
       end
 
-      def android_home_set
-        unless ENV['ANDROID_HOME']
-          SystemSetup.install_android
-        end
-      end
-
-      def android_cmd_exists
-        unless Android.exists?
-          Android.set_android_home
-        end
+      def android
+        Android.exists?
       end
 
       def target_exists(target)
@@ -28,6 +20,12 @@ module Mobo
       def abi_exists?(target, abi)
         unless Android::Targets.has_abi?(target, abi)
           SystemSetup.install_abi(target, abi)
+        end
+      end
+
+      def adb
+        unless Android::Adb.exists?
+          SystemSetup.install_adb
         end
       end
 

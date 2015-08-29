@@ -1,20 +1,36 @@
 module Mobo
+
   module Android
 
     class << self
       def exists?
+        add_to_path
         Mobo.cmd("which android")
       end
 
       def install
-        Mobo.cmd("curl -O http://dl.google.com/android/android-sdk_r24.3.4-linux.tgz")
-        Mobo.cmd("sudo tar -xf android-sdk_r24.3.4-linux.tgz -C /usr/local/")
+         Mobo.cmd("curl -O http://dl.google.com/android/android-sdk_r24.3.4-linux.tgz")
+         Mobo.cmd("sudo tar -xf android-sdk_r24.3.4-linux.tgz -C /usr/local/")
+         Mobo.cmd("sudo chown -R $(whoami) /usr/local/android-sdk-linux")
+         add_to_path
       end
-
-      def set_android_home
-        Mobo.cmd("echo \"export ANDROID_HOME=/usr/local/android-sdk-linux\" >> ~/.bash_profile")
-        Mobo.cmd("echo \"export PATH=$PATH:$ANDROID_HOME/tools\" >> ~/.bash_profile")
-        Mobo.cmd("source ~/.bash_profile")
+ 
+      # setting env variables in the bash profile and trying to reload them isn't easy,
+      # as the variables are only set in the sub process the bash_profile is executed in
+      # so we can set env variables, which take effect here, and also set them in bash_profile
+      # for the user to use later on
+      def add_to_path
+        android_home = "/usr/local/android-sdk-linux"
+        
+        if !ENV['PATH'].match(/#{android_home}/)
+          ENV['ANDROID_HOME'] = android_home
+          ENV['PATH'] += ":#{ENV['ANDROID_HOME']}/tools"
+          Mobo.cmd("echo \"export ANDROID_HOME=#{ENV['ANDROID_HOME']}\" >> ~/.bash_profile")
+          Mobo.cmd("echo \"export PATH=#{ENV['PATH']}\" >> ~/.bash_profile")
+          Mobo.log.info("ANDROID_HOME and PATH env variables have been updated. 
+            Start a new terminal session for them to take effect")
+          raise "Setting ANDROID_HOME and PATH failed" unless self.exists?
+        end
       end
 
       def package_exists?(package)
@@ -22,7 +38,7 @@ module Mobo
       end
 
       def install_package(package)
-        Mobo.cmd("echo y | android update sdk --no-ui --all --filter #{package}")
+        Mobo.cmd("echo y | android update sdk --no-ui --all --filter #{package} 2>&1 >> /dev/null")
       end
     end
 
@@ -30,6 +46,11 @@ module Mobo
       class << self
         def exists?(target)
           Mobo.cmd("android list targets --compact | grep #{target}")
+        end
+
+        def abi_package(target, abi)
+          prepend = "sys-img"
+          "#{prepend}-#{abi}-#{target}"
         end
 
         def has_abi?(target, abi)
@@ -58,6 +79,32 @@ module Mobo
             --abi #{device["abi"]} \
             --force")
           raise "Error creating AVD" unless $?.success?
+        end
+      end
+    end
+
+    class Adb
+      class << self
+
+        def add_to_path
+          if !ENV['PATH'].match(/platform-tools/)
+            ENV['PATH'] += ":#{ENV['ANDROID_HOME']}/platform-tools"
+            Mobo.cmd("echo \"export PATH=#{ENV['PATH']}\" >> ~/.bash_profile")
+            Mobo.log.debug("ENV['PATH'] set to #{ENV['PATH']}")
+            Mobo.log.info("PATH env variables has been updated. 
+            Start a new terminal session for it to take effect")
+          end
+        end
+
+        def exists?
+          add_to_path
+          Mobo.cmd("which adb")
+        end
+
+        def install
+          Mobo.cmd("echo yes | android update sdk --all --no-ui --filter platform-tools 2>&1 >> /dev/null")
+          add_to_path  
+          raise "Installing adb failed" unless self.exists?
         end
       end
     end
@@ -112,9 +159,10 @@ module Mobo
           -port #{@device["port"]} \
           -sdcard #{@device["sdcard"]} \
           -cache #{@device["cache"]}"
-        Mobo.log.debug(cmd)
-        pid = Process.spawn(cmd)
-        Process.detach(pid)
+        pid = Process.fork {
+          Mobo.cmd(cmd)
+          Mobo.log.info("Emulator #{@device["name"]} has stopped")
+        }
 
         @device["pid"] = pid
         @device["id"] = "emulator-#{@device["port"]}"
@@ -127,15 +175,27 @@ module Mobo
             if booted?
               Mobo.log.info("#{@device["id"]} has booted")
               break
+            elsif !running?
+              Mobo.log.error("Emulator #{@device["name"]} has stopped")
+              break
             else
               Mobo.log.debug("waiting for #{@device["id"]} to boot...")
               sleep(BOOT_SLEEP)
             end
           end
 
-          if booted?
+          if running? && booted?
             unlock
           end
+        end
+      end
+
+      def running?
+        begin
+          Process.getpgid( @device["pid"] )
+          true
+        rescue Errno::ESRCH
+          false
         end
       end
 

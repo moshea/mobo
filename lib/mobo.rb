@@ -50,7 +50,7 @@ module Mobo
         "height"      => "1200",
         "width"       => "720",
         "sdcard_size" => "20M" }
-      defaults.merge(device)
+      device = defaults.merge(device)
     end
 
     def load_data(filename)
@@ -59,8 +59,9 @@ module Mobo
     end
 
     def system_checks
-      SystemCheck.android_home_set
-      SystemCheck.android_cmd_exists
+      SystemSetup.base_libraries
+      SystemCheck.android
+      SystemCheck.adb
     end
 
     def up(filename)
@@ -79,9 +80,10 @@ module Mobo
         emulator.start
         emulator.unlock_when_booted
       end
-      File.open(MOBO_DEVICES_FILE, "w") do |file|
+      File.open(MOBO_DEVICES_CACHE_FILE, "w") do |file|
         file.write Mobo.devices.to_yaml
       end
+      Process.waitall
     end
 
     def status(filename)

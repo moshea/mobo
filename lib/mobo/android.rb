@@ -48,21 +48,25 @@ module Mobo
           Mobo.cmd("android list targets --compact | grep #{target}")
         end
 
+        def target_details(target)
+          output = Mobo.cmd_out("android list targets")
+          records = output.split('----------')
+          records.each do |record|
+            return record if record.match(/#{target}/)
+          end
+        end
+
         def abi_package(target, abi)
           prepend = "sys-img"
           "#{prepend}-#{abi}-#{target}"
         end
 
         def has_abi?(target, abi)
-          output = Mobo.cmd_out("android list targets")
-          records = output.split('----------')
-          has_abi = false
-          records.each do |record|
-            if record.match(/#{target}/) and record.match(/#{abi}/)
-              has_abi = true
-            end
-          end
-          return has_abi
+          target_details(target).match(/#{abi}/)
+        end
+
+        def has_skin?(target, skin)
+          target_details(target).match(/#{skin}/)
         end
       end
     end
@@ -72,12 +76,16 @@ module Mobo
         def create(device)
           SystemCheck.target_exists(device["target"])
           SystemCheck.abi_exists?(device["target"], device["abi"])
-
-          Mobo.cmd("echo no | android create avd \
+          SystemCheck.skin_exists?(device["target"], device["skin"])
+          emulator_cmd =
+            "echo no | android create avd \
             --name #{device["name"]} \
             --target #{device["target"]} \
             --abi #{device["abi"]} \
-            --force")
+            --force"
+          emulator_cmd += " --skin #{device["skin"]}" if device["skin"]
+          Mobo.cmd(emulator_cmd)
+
           raise "Error creating AVD" unless $?.success?
         end
       end

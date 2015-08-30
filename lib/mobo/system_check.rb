@@ -23,6 +23,10 @@ module Mobo
         end
       end
 
+      def skin_exists?(target, abi)
+        Android::Targets.has_skin?(target, abi)
+      end
+
       def adb
         unless Android::Adb.exists?
           SystemSetup.install_adb

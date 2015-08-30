@@ -13,12 +13,9 @@ Example devices.yaml file
 devices:
   - name: foo
     target: android-22
-    height: 1200
-    width: 720
   - name: bar
     target: android-22
-    height: 800
-    width: 600
+    skin: WVGA800
 ```
 
 Building from source:

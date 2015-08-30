@@ -1,3 +1,16 @@
+Manage your android devices easily with one yaml file.
+
+Define, boot up and tear down all with simple commands
+Performs system checks before booting each emulator and installs any android libraries that are needed to boot the emulator, including base android, android tools and android platform tools.
+
+Prerequisites:
+  - Java 1.7
+
+Systems Supported
+  - Mac OSX
+  - Ubuntu
+
+
 Usage:
   mobo up      - boot all devices defined in the devices.yaml file in the current directory
 

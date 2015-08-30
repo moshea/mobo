@@ -4,7 +4,7 @@ bin_files = ['bin/mobo']
 
 Gem::Specification.new do |s|
   s.name        = 'mobo'
-  s.version     = '0.0.0'
+  s.version     = '0.0.1'
   s.date        = '2015-08-05'
   s.summary     = 'Mobo - android emulator abstraction'
   s.description = 'Abstract android emaulators with a simple yaml file'

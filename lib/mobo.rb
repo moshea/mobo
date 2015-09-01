@@ -83,7 +83,7 @@ module Mobo
       File.open(MOBO_DEVICES_CACHE_FILE, "w") do |file|
         file.write Mobo.devices.to_yaml
       end
-      Process.waitall
+      Process.wait
     end
 
     def status(filename)

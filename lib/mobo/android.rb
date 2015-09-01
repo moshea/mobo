@@ -6,6 +6,8 @@ module Mobo
       def exists?
         if Mobo.cmd("which android")
           return true
+        # if exists? isn't true straight away, check if ANDROID_HOME is set, and try and
+        # fix the issue
         elsif ENV['ANDROID_HOME'] and File.exists?(ENV['ANDROID_HOME'] + '/tools/android')
           add_to_path(ENV['ANDROID_HOME'])
           Mobo.cmd("which android")
@@ -38,7 +40,7 @@ module Mobo
           ENV['ANDROID_HOME'] = android_home
           ENV['PATH'] += ":#{android_tools}"
         end
-        unless Mobo.cmd("grep -i ANDROID_HOME ~/.bash*")
+        unless Mobo.cmd("grep -i ANDROID_HOME ~/.bash_profile")
           Mobo.cmd("echo 'export ANDROID_HOME=#{android_home}' >> ~/.bash_profile")
           Mobo.cmd("echo 'export PATH=\$PATH:#{android_tools}' >> ~/.bash_profile")
           Mobo.log.info("ANDROID_HOME and PATH env variables have been updated. 
@@ -184,6 +186,7 @@ module Mobo
           Mobo.cmd(cmd)
           Mobo.log.info("Emulator #{@device["name"]} has stopped")
         }
+        Process.detach(pid)
 
         @device["pid"] = pid
         @device["id"] = "emulator-#{@device["port"]}"
@@ -199,8 +202,12 @@ module Mobo
             elsif !running?
               Mobo.log.error("Emulator #{@device["name"]} has stopped")
               break
+            elsif booting?
+              Mobo.log.info("waiting for #{@device["id"]} to boot...")
+              sleep(BOOT_SLEEP)
             else
-              Mobo.log.debug("waiting for #{@device["id"]} to boot...")
+              # adb does not always recgnoise new emulators booted up, so it needs to be restarted
+              Mobo.cmd('adb kill-server')
               sleep(BOOT_SLEEP)
             end
           end
@@ -222,11 +229,12 @@ module Mobo
 
       def booted?
         bootanim = Mobo.cmd_out("adb -s #{@device["id"]} shell 'getprop init.svc.bootanim'")
-        if bootanim.match(/stopped/)
-          return true
-        else
-          return false
-        end
+        bootanim.match(/stopped/)
+      end
+
+      def booting?
+        bootanim = Mobo.cmd_out("adb -s #{@device["id"]} shell 'getprop init.svc.bootanim'")
+        bootanim.match(/running/)
       end
 
       def unlock

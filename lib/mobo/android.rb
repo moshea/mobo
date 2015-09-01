@@ -4,22 +4,28 @@ module Mobo
 
     class << self
       def exists?
-        Mobo.cmd("which android")
+        if Mobo.cmd("which android")
+          return true
+        elsif ENV['ANDROID_HOME'] and File.exists?(ENV['ANDROID_HOME'] + '/tools/android')
+          add_to_path(ENV['ANDROID_HOME'])
+          Mobo.cmd("which android")
+        end
       end
 
       def install
         if SystemCheck.ubuntu?
-         Mobo.cmd("curl -O http://dl.google.com/android/android-sdk_r24.3.4-linux.tgz")
-         Mobo.cmd("sudo tar -xf android-sdk_r24.3.4-linux.tgz -C /usr/local/")
-         Mobo.cmd("sudo chown -R $(whoami) /usr/local/android-sdk-linux")
-         add_to_path("/usr/local/android-sdk-linux")
-       elsif SystemCheck.osx?
+          Mobo.cmd("curl -O http://dl.google.com/android/android-sdk_r24.3.4-linux.tgz")
+          Mobo.cmd("sudo tar -xf android-sdk_r24.3.4-linux.tgz -C /usr/local/")
+          Mobo.cmd("sudo chown -R $(whoami) /usr/local/android-sdk-linux")
+          add_to_path("/usr/local/android-sdk-linux")
+        elsif SystemCheck.osx?
           Mobo.cmd("curl -O http://dl.google.com/android/android-sdk_r24.3.4-macosx.zip")
           Mobo.cmd("sudo unzip android-sdk_r24.3.4-macosx.zip -d /usr/local/")
-          Mobo.cmd("sudo chown -R $(whoami) /usr/local/android-sdk-mac_x86")
-          add_to_path("/usr/local/android-sdk-mac_x86")
-       else
-        Mobo.log.error("Platform not yet supported! Please raise a request with the project to support it.")
+          Mobo.cmd("sudo chown -R $(whoami) /usr/local/android-sdk-macosx")
+          add_to_path("/usr/local/android-sdk-macosx")
+        else
+          Mobo.log.error("Platform not yet supported! Please raise a request with the project to support it.")
+        end
       end
  
       # setting env variables in the bash profile and trying to reload them isn't easy,
@@ -27,15 +33,18 @@ module Mobo
       # so we can set env variables, which take effect here, and also set them in bash_profile
       # for the user to use later on
       def add_to_path(android_home)
-        if !ENV['PATH'].match(/#{android_home}/)
+        android_tools = android_home + '/tools'
+        unless ENV['PATH'].match(/#{android_home}/)
           ENV['ANDROID_HOME'] = android_home
-          ENV['PATH'] += ":#{ENV['ANDROID_HOME']}/tools"
-          Mobo.cmd("echo \"export ANDROID_HOME=#{ENV['ANDROID_HOME']}\" >> ~/.bash_profile")
-          Mobo.cmd("echo \"export PATH=#{ENV['PATH']}\" >> ~/.bash_profile")
+          ENV['PATH'] += ":#{android_tools}"
+        end
+        unless Mobo.cmd("grep -i ANDROID_HOME ~/.bash*")
+          Mobo.cmd("echo 'export ANDROID_HOME=#{android_home}' >> ~/.bash_profile")
+          Mobo.cmd("echo 'export PATH=\$PATH:#{android_tools}' >> ~/.bash_profile")
           Mobo.log.info("ANDROID_HOME and PATH env variables have been updated. 
             Start a new terminal session for them to take effect")
-          raise "Setting ANDROID_HOME and PATH failed" unless self.exists?
         end
+        raise "Setting ANDROID_HOME and PATH failed" unless self.exists?
       end
 
       def package_exists?(package)
@@ -102,7 +111,7 @@ module Mobo
         def add_to_path
           if !ENV['PATH'].match(/platform-tools/)
             ENV['PATH'] += ":#{ENV['ANDROID_HOME']}/platform-tools"
-            Mobo.cmd("echo \"export PATH=#{ENV['PATH']}\" >> ~/.bash_profile")
+            Mobo.cmd("echo 'export PATH=\$PATH:#{ENV['ANDROID_HOME']}/platform-tools' >> ~/.bash_profile")
             Mobo.log.debug("ENV['PATH'] set to #{ENV['PATH']}")
             Mobo.log.info("PATH env variables has been updated. 
             Start a new terminal session for it to take effect")

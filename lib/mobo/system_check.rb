@@ -40,6 +40,10 @@ module Mobo
       def ubuntu?
         RUBY_PLATFORM.match(/linux/) and Mobo.cmd("which apt-get")
       end
+
+      def osx?
+        RUBY_PLATFORM.match(/darwin/)
+      end
     end
   end
 end

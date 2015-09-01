@@ -60,8 +60,8 @@ module Mobo
 
     def system_checks
       SystemSetup.base_libraries
-      SystemCheck.android
-      SystemCheck.adb
+      SystemCheck.android?
+      SystemCheck.adb?
     end
 
     def up(filename)

@@ -4,24 +4,29 @@ module Mobo
 
     class << self
       def exists?
-        add_to_path
         Mobo.cmd("which android")
       end
 
       def install
+        if SystemCheck.ubuntu?
          Mobo.cmd("curl -O http://dl.google.com/android/android-sdk_r24.3.4-linux.tgz")
          Mobo.cmd("sudo tar -xf android-sdk_r24.3.4-linux.tgz -C /usr/local/")
          Mobo.cmd("sudo chown -R $(whoami) /usr/local/android-sdk-linux")
-         add_to_path
+         add_to_path("/usr/local/android-sdk-linux")
+       elsif SystemCheck.osx?
+          Mobo.cmd("curl -O http://dl.google.com/android/android-sdk_r24.3.4-macosx.zip")
+          Mobo.cmd("sudo unzip android-sdk_r24.3.4-macosx.zip -d /usr/local/")
+          Mobo.cmd("sudo chown -R $(whoami) /usr/local/android-sdk-mac_x86")
+          add_to_path("/usr/local/android-sdk-mac_x86")
+       else
+        Mobo.log.error("Platform not yet supported! Please raise a request with the project to support it.")
       end
  
       # setting env variables in the bash profile and trying to reload them isn't easy,
       # as the variables are only set in the sub process the bash_profile is executed in
       # so we can set env variables, which take effect here, and also set them in bash_profile
       # for the user to use later on
-      def add_to_path
-        android_home = "/usr/local/android-sdk-linux"
-        
+      def add_to_path(android_home)
         if !ENV['PATH'].match(/#{android_home}/)
           ENV['ANDROID_HOME'] = android_home
           ENV['PATH'] += ":#{ENV['ANDROID_HOME']}/tools"
@@ -74,7 +79,7 @@ module Mobo
     module Avd
       class << self
         def create(device)
-          SystemCheck.target_exists(device["target"])
+          SystemCheck.target_exists?(device["target"])
           SystemCheck.abi_exists?(device["target"], device["abi"])
           SystemCheck.skin_exists?(device["target"], device["skin"])
           emulator_cmd =
@@ -105,7 +110,6 @@ module Mobo
         end
 
         def exists?
-          add_to_path
           Mobo.cmd("which adb")
         end
 

@@ -7,19 +7,25 @@ module Mobo
         raise error unless $?.success?
       end
 
-      def android
-        Android.exists?
+      def android?
+        Android.install unless Android.exists?
       end
 
-      def target_exists(target)
+      def adb?
+        Android::Adb.install unless Android::Adb.exists?
+      end
+
+      def target_exists?(target)
         unless Android::Targets.exists?(target)
-          SystemSetup.install_target(target)
+          Android.install_package(target) if Android.package_exists?(target)
         end
       end
 
       def abi_exists?(target, abi)
         unless Android::Targets.has_abi?(target, abi)
-          SystemSetup.install_abi(target, abi)
+          package_name = Android::Targets.abi_package(target, abi)
+          Android.install_package(package_name) if Android.package_exists?(package_name)
+          raise "Cannot install abi: #{abi} for #{target}" unless $?.success?
         end
       end
 
@@ -27,14 +33,12 @@ module Mobo
         Android::Targets.has_skin?(target, abi)
       end
 
-      def adb
-        unless Android::Adb.exists?
-          SystemSetup.install_adb
-        end
-      end
-
       def device_file_exists?(filename)
         File.exists?(filename)
+      end
+
+      def ubuntu?
+        RUBY_PLATFORM.match(/linux/) and Mobo.cmd("which apt-get")
       end
     end
   end

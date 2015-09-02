@@ -5,8 +5,10 @@ module Mobo
       def base_libraries
         if SystemCheck.ubuntu?
           Mobo.cmd("sudo apt-get install -y libc6-i386 lib32stdc++6 lib32gcc1 lib32ncurses5 lib32z1")
-        elsif SystemCheck.osx?
-          Android.install_haxm unless Android.haxm_installed?
+        end
+
+        if Android.supports_haxm and not Android.haxm_installed?
+          Android.install_haxm
         end
       end
 

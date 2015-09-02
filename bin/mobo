@@ -11,4 +11,6 @@ when "status"
   Mobo.status(MOBO_DEVICES_CACHE_FILE)
 when "destroy"
   Mobo.destroy(MOBO_DEVICES_CACHE_FILE)
+when "init"
+  Mobo.init
 end

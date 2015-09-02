@@ -44,6 +44,7 @@ module Mobo
       def osx?
         RUBY_PLATFORM.match(/darwin/)
       end
+
     end
   end
 end

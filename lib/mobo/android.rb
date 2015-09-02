@@ -47,6 +47,21 @@ module Mobo
       def haxm_installed?
         if SystemCheck.osx?
           Mobo.cmd("kextstat | grep intel")
+        else
+          Mobo.cmd("dpkg -s qemu-kvm") &&
+          Mobo.cmd("dpkg -s libvirt-bin") &&
+          Mobo.cmd("dpkg -s ubuntu-vm-builder") &&
+          Mobo.cmd("dpkg -s bridge-utils") &&
+        end
+      end
+
+      # checks if ubuntu supports haxm
+      def supports_haxm
+        if SystemCheck.ubuntu?
+          out = Mobo.cmd_out("egrep -c '(vmx|svm)' /proc/cpuinfo")
+          out.to_i > 0
+        elsif SystemCheck.osx?
+          true
         end
       end
 
@@ -58,6 +73,18 @@ module Mobo
           haxm_mount_point = Dir["/Volumes/IntelHAXM*"].first
           Mobo.cmd("sudo installer -pkg #{haxm_mount_point}/*.mpkg -target /")
           Mobo.cmd("hdiutil detach #{haxm_mount_point}")
+        elsif SystemCheck.ubuntu?
+          Mobo.log.debug("Using sudo to install KVM - will enable emulators to run faster")
+          Mobo.log.debug("#{Mobo.cmd_out("whoami")} will be added to libvirtd and kvm groups.
+            The terminal session needs to be restarted for this to take effect and start emulators
+            using hardware assisted virtual machines"
+          Mobo.cmd("sudo apt-get install -y qemu-kvm libvirt-bin ubuntu-vm-builder bridge-utils")
+          Mobo.cmd("sudo adduser `whoami` libvirtd")
+          Mobo.cmd("sudo adduser `whoami` kvm")
+          Mobo.log.debug("#{Mobo.cmd_out("whoami")} will be added to libvirtd and kvm groups.
+            The terminal session needs to be restarted for this to take effect and start emulators
+            using hardware assisted virtual machines" )
+          exit 1
         else
           raise "Platform not supported for haxm installation yet"
         end

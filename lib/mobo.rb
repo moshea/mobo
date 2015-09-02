@@ -77,6 +77,10 @@ module Mobo
       SystemCheck.adb?
     end
 
+    def init
+      system_checks
+    end
+
     def up(filename)
       system_checks
       load_data(filename)

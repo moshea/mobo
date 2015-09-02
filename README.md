@@ -23,6 +23,8 @@ gem 'mobo'
 
 #### Usage:
 
+  mobo init    - perform an initial install of android, adb and haxm. They will be installed with mobo up, but it's a convient method for scripting installations
+
   mobo up      - boot all devices defined in the devices.yaml file in the current directory
 
   mobo status  - show status of all current devices

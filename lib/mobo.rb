@@ -22,6 +22,10 @@ module Mobo
       @home_dir + '/android-sdk'
     end
 
+    def avd_home
+      @home_dir + '/avd'
+    end
+
     def cmd(command)
       log.debug(command)
       system(command)

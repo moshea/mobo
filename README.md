@@ -50,16 +50,10 @@ devices:
 
 Mobo creates a ~/.mobo directory, and stores all necessary libraries in there.
 Android will be installed by default in that location, and used by mobo.
-If you would like to use the mobo instance of android
-
-##### Linux
+If you would like to use the mobo instance of android you can issue the following commands
+#####
 ```bash
-ANDROID_HOME=~/.mobo/android-sdk-linux
-PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
-```
-##### OSX
-```bash
-ANDROID_HOME=~/.mobo/android-sdk-macosx
+ANDROID_HOME=~/.mobo/android-sdk
 PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
 ```
 

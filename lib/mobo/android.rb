@@ -87,6 +87,7 @@ module Mobo
             --name #{device["name"]} \
             --target #{device["target"]} \
             --abi #{device["abi"]} \
+            --path #{Mobo.avd_home}/#{device["name"]} \
             --force"
           emulator_cmd += " --skin #{device["skin"]}" if device["skin"]
           Mobo.cmd(emulator_cmd)

@@ -229,12 +229,12 @@ module Mobo
 
       def booted?
         bootanim = Mobo.cmd_out("adb -s #{@device["id"]} shell 'getprop init.svc.bootanim'")
-        bootanim.match(/stopped/)
+        bootanim.match(/stopped/) ? true : false
       end
 
       def booting?
         bootanim = Mobo.cmd_out("adb -s #{@device["id"]} shell 'getprop init.svc.bootanim'")
-        bootanim.match(/running/)
+        bootanim.match(/running/) ? true : false
       end
 
       def unlock
@@ -247,7 +247,7 @@ module Mobo
       end
 
       def status
-        Mobo.log.info("#{@device["name"]} (#{@device["id"]}) is running: #{booted?}")
+        puts "#{@device["id"]} \t #{@device["name"]} \t #{booted?} \t #{@device["port"]}"
       end
 
       def destroy

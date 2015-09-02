@@ -88,6 +88,8 @@ module Mobo
 
     def status(filename)
       load_data(filename)
+      puts "id \t name \t status \t port"
+      puts "-----------------------------"
       Mobo.data.each_pair do |name, device|
         Mobo::Android::Emulator.new(device).status
       end

@@ -11,6 +11,15 @@ Systems Supported
   - Mac OSX
   - Ubuntu
 
+#### Install:
+```bash
+gem install mobo
+```
+
+```
+Gemfile
+gem 'mobo'
+```
 
 #### Usage:
 

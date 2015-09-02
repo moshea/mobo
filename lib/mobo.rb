@@ -8,7 +8,7 @@ require_relative 'mobo/system_setup'
 
 module Mobo
   class << self
-    attr_accessor :log, :data, :devices
+    attr_accessor :log, :data, :devices, :home_dir
 
     def log
       unless @log
@@ -16,6 +16,10 @@ module Mobo
         @log.level = ENV['DEBUG'] ? Logger::DEBUG : Logger::INFO
       end
       @log
+    end
+
+    def android_home
+      @home_dir + '/android-sdk'
     end
 
     def cmd(command)
@@ -63,6 +67,7 @@ module Mobo
     end
 
     def system_checks
+      SystemSetup.mobo
       SystemSetup.base_libraries
       SystemCheck.android?
       SystemCheck.adb?

@@ -48,13 +48,22 @@ devices:
 
 #### Configuration
 
-Mobo looks for the environment variable ANDROID_HOME, and checks if android is installed.
-If ANDROID_HOME isn't defined, Mobo will download and install Android from scratch. Only installing the minimum libraries needed.
-Mobo will then set ANDROID_HOME and add ANDROID_HOME/tools and ANDROID_HOME/platform-tools to the PATH so that it is accessable from the console.
-A terminal session might need to be restarted for the changes to take effect.
+Mobo creates a ~/.mobo directory, and stores all necessary libraries in there.
+Android will be installed by default in that location, and used by mobo.
+If you would like to use the mobo instance of android
 
+##### Linux
+```bash
+ANDROID_HOME=~/.mobo/android-sdk-linux
+PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+```
+##### OSX
+```bash
+ANDROID_HOME=~/.mobo/android-sdk-macosx
+PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+```
 
-Mobo installs Android in /usr/local/<android-sdk-name> as default
+ANDROID_HOME and PATH can also be set in your ~/.bash_profile
 
 #### Building from source
 ```bash

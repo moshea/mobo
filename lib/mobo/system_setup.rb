@@ -8,6 +8,12 @@ module Mobo
         end
       end
 
+      def mobo
+        Mobo.home_dir = File.expand_path("~/.mobo")
+        Mobo.log.info("Using #{Mobo.home_dir} as home directory. Android will be installed here")
+        Dir.mkdir(Mobo.home_dir) unless File.exists?(Mobo.home_dir)
+      end
+
     end
   end
 end

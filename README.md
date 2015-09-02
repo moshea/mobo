@@ -29,6 +29,10 @@ gem 'mobo'
 
   mobo destroy - kill all running devices
 
+  Set DEBUG=1 to turn on debugging messages eg. 
+  ```bash
+  DEBUG=1 mobo up
+  ```
 
 #### Example devices.yaml file
 ```yaml

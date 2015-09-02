@@ -11,7 +11,11 @@ module Mobo
     attr_accessor :log, :data, :devices
 
     def log
-      @log || @log = Logger.new(STDOUT)
+      unless @log
+        @log = Logger.new(STDOUT)
+        @log.level = ENV['DEBUG'] ? Logger::DEBUG : Logger::INFO
+      end
+      @log
     end
 
     def cmd(command)

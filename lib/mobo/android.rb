@@ -43,6 +43,25 @@ module Mobo
       def install_package(package)
         Mobo.cmd("echo y | android update sdk --no-ui --all --filter #{package}")
       end
+
+      def haxm_installed?
+        if SystemCheck.osx?
+          Mobo.cmd("kextstat | grep intel")
+        end
+      end
+
+      def install_haxm
+        if SystemCheck.osx?
+          install_package("extra-intel-Hardware_Accelerated_Execution_Manager")
+          Mobo.cmd("hdiutil attach #{Mobo.android_home}/extras/intel/Hardware_Accelerated_Execution_Manager/IntelHAXM.dmg")
+          Mobo.log.info("Using the sudo command to install haxm - Intel Hardware Accelerated Execution Manager")
+          haxm_mount_point = Dir["/Volumes/IntelHAXM*"].first
+          Mobo.cmd("sudo installer -pkg #{haxm_mount_point}/*.mpkg -target /")
+          Mobo.cmd("hdiutil detach #{haxm_mount_point}")
+        else
+          raise "Platform not supported for haxm installation yet"
+        end
+      end
     end
 
     module Targets

@@ -61,7 +61,7 @@ module Mobo
         "abi"         => "x86_64",
         "height"      => "1200",
         "width"       => "720",
-        "sdcard_size" => "20M" }
+        "sdcard"      => "20M" }
       device = defaults.merge(device)
     end
 

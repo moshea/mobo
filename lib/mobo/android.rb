@@ -166,12 +166,12 @@ module Mobo
       end
 
       def create_sdcard
-        @device["sdcard"] = "#{@device["name"]}_sdcard.img"
-        Mobo.cmd("mksdcard -l e #{@device["sdcard_size"]} #{@device["sdcard"]}")
+        @device["sdcard_img"] = "#{@device["name"]}_sdcard.img"
+        Mobo.cmd("mksdcard -l e #{@device["sdcard"]} #{@device["sdcard_img"]}")
       end
 
       def destroy_sdcard
-        Mobo.cmd("rm -f #{@device["sdcard"]}")
+        Mobo.cmd("rm -f #{@device["sdcard_img"]}")
       end
 
       def create_cache
@@ -189,7 +189,7 @@ module Mobo
 
         cmd ="emulator @#{@device["name"]} \
           -port #{@device["port"]} \
-          -sdcard #{@device["sdcard"]} \
+          -sdcard #{@device["sdcard_img"]} \
           -cache #{@device["cache"]}"
         pid = Process.fork {
           Mobo.cmd(cmd)

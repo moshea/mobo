@@ -44,6 +44,7 @@ devices:
   - name: bar
     target: android-22
     skin: WVGA800
+    sdcard: 20M
 ```
 
 #### Configuration
